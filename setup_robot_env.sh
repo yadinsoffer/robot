@@ -14,9 +14,12 @@ source robot_env/bin/activate
 echo "Setting PYTHONPATH..."
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-# Install required package
-echo "Installing pyserial..."
+# Install required packages
+echo "Installing required packages..."
 pip3 install pyserial
+pip3 install opencv-python
+pip3 install numpy
+pip3 install mediapipe  # For gesture detection
 
 echo "Setup complete! Virtual environment is activated and ready to use."
 echo "You can now run your robot scripts." 

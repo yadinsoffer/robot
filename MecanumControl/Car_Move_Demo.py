@@ -39,13 +39,7 @@ signal.signal(signal.SIGINT, Stop)
 
 if __name__ == '__main__':
     while start:
-        chassis.set_velocity(50,90,0) # 控制机器人移动函数,线速度50(0~100)，方向角90(0~360)，偏航角速度0(-2~2)
-        time.sleep(1)
-        chassis.set_velocity(50,0,0)
-        time.sleep(1)
-        chassis.set_velocity(50,270,0)
-        time.sleep(1)
-        chassis.set_velocity(50,180,0)
+        chassis.set_velocity(50,270,0) # left movement only
         time.sleep(1)
     chassis.set_velocity(0,0,0)  # 关闭所有电机
-    print('已关闭')     
+    print('已关闭')

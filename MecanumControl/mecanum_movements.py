@@ -46,6 +46,22 @@ class MecanumMovements:
     def set_speed(self, new_speed):
         """Change the default speed (0-100)"""
         self.default_speed = max(0, min(100, new_speed))  # Clamp between 0-100
+        
+    def move_left(self, speed=None):
+        """
+        Move robot left using the mecanum chassis velocity control
+        :param speed: Motor speed (0-100), defaults to 80 if not specified
+        """
+        if speed is None:
+            speed = self.default_speed
+            
+        # Use mecanum chassis velocity control: speed, direction angle (180 = left), no rotation
+        self.board.set_motor_duty([
+            [1, speed],     # Front left
+            [2, -speed],    # Front right
+            [3, speed],     # Rear left
+            [4, -speed]     # Rear right
+        ])
 
 # Example usage
 if __name__ == '__main__':
