@@ -20,26 +20,32 @@ class StreamingHandler(BaseHTTPRequestHandler):
                 <html>
                 <head>
                     <title>Robot Gesture Control View</title>
+                    <style>
+                        body { text-align: center; background-color: #f0f0f0; }
+                        img { max-width: 100%; height: auto; margin: 20px 0; }
+                    </style>
                 </head>
                 <body>
                     <h1>Robot Gesture Control View</h1>
-                    <img src="/stream" style="width:640px;height:480px"/>
+                    <img src="/stream.mjpg" />
                     <p>Show 5 fingers for forward, 1 finger for backward</p>
                 </body>
                 </html>
             """.encode())
-        elif self.path == '/stream':
+        elif self.path == '/stream.mjpg':
             self.send_response(200)
-            self.send_header('Content-type', 'multipart/x-mixed-replace; boundary=frame')
+            self.send_header('Age', 0)
+            self.send_header('Cache-Control', 'no-cache, private')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
             self.end_headers()
             try:
                 while True:
                     if hasattr(self.server, 'frame') and self.server.frame is not None:
-                        # Encode frame as JPEG
                         _, jpeg = cv2.imencode('.jpg', self.server.frame)
-                        self.wfile.write(b'--frame\r\n')
-                        self.send_header('Content-type', 'image/jpeg')
-                        self.send_header('Content-length', len(jpeg))
+                        self.wfile.write(b'--FRAME\r\n')
+                        self.send_header('Content-Type', 'image/jpeg')
+                        self.send_header('Content-Length', len(jpeg))
                         self.end_headers()
                         self.wfile.write(jpeg.tobytes())
                         self.wfile.write(b'\r\n')
@@ -58,9 +64,27 @@ class GestureController:
     def __init__(self):
         self.robot = MecanumMovements()
         print("Initializing camera...")
-        self.cap = cv2.VideoCapture(0)
+        
+        # DroidCam settings
+        camera_url = 'http://192.168.12.228:4747/video'
+        print(f"Connecting to DroidCam at {camera_url}")
+        
+        self.cap = cv2.VideoCapture(camera_url)
+        
         if not self.cap.isOpened():
-            raise RuntimeError("Failed to open camera!")
+            raise RuntimeError("Failed to connect to DroidCam! Make sure:\n"
+                             "1. DroidCam app is running on your iPhone\n"
+                             "2. iPhone and Raspberry Pi are on the same network\n"
+                             "3. The IP address (192.168.12.228) and port (4747) are correct")
+        
+        # Test camera connection
+        ret, test_frame = self.cap.read()
+        if ret:
+            print("\nDroidCam connected successfully!")
+            print(f"Resolution: {test_frame.shape[1]}x{test_frame.shape[0]}")
+        else:
+            raise RuntimeError("Could not read frame from DroidCam")
+            
         print("Camera initialized successfully")
         
         # Initialize streaming server
